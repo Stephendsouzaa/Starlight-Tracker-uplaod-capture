@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # Download and load model
 repo_id = "stephendsouza/Starlight-Tracker"
-model_filename = "constellation_model.keras"
+model_filename = "constellation_model_mobilenet.keras"
 model_path = hf_hub_download(repo_id=repo_id, filename=model_filename)
 model = tf.keras.models.load_model(model_path)
 # Map predicted class index to constellation names with detailed information
