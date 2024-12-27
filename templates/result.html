@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constellation Result</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style1.css') }}">
+</head>
+<body>
+    <!-- Go Back Button -->
+    <a href="{{ url_for('home') }}" class="go-back">Go Back</a>
+
+    <div class="content">
+        <!-- Left Section -->
+        <div class="left-section">
+            <h1>Constellation Identifier Result</h1>
+            <h3>Uploaded Image:</h3>
+            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Uploaded Image" width="300">
+            <h3>Result:</h3>
+            <p><strong>{{ constellation }}</strong></p>
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <h3>Details:</h3>
+            <p><strong>Description:</strong> {{ description }}</p>
+            <p><strong>Mythology:</strong> {{ mythology }}</p>
+            <p><strong>Interesting Facts:</strong> {{ facts }}</p>
+        
+            <h3>Additional Information:</h3>
+            <p><strong>Visibility:</strong> {{ best_visibility }}</p>
+            <p><strong>Significance:</strong> {{ significance }}</p>
+        
+            <h3>Learn More:</h3>
+            <p>For more information, visit the 
+                <a href="{{ view_more }}" target="_blank" rel="noopener noreferrer">detailed page</a>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Three.js Cosmic Background Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 5000;
+        const positions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 2000;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+        }
+
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        camera.position.z = 10;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            stars.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

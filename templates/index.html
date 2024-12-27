@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constellation Identifier</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <a href="http://localhost:3000" class="go-back">Go Back</a>
+
+    <div class="content">
+        <div class="left">
+            <h1>Constellation Identifier</h1><br><br>
+            <p>This page allows you to either upload an image or capture a photo using your connected camera. You can select between available cameras (external) and use them for capturing a photo. The page will notify you if an external camera is connected or not, and you can upload images accordingly.</p>
+            
+            <div class="form-container">
+                <div class="upload-form">
+                    <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+                        <label for="file-input">Upload Image:</label><br>
+                        <input type="file" name="image" id="file-input" accept="image/*" required>
+                        <br>
+                        <span id="file-name">No file chosen</span>
+                        <br><br>
+                        <button type="submit">Upload Image</button>
+                    </form>
+                </div>
+            
+                <div class="camera-form-container">
+                    <form id="camera-form" action="/upload" method="post" enctype="multipart/form-data">
+                        <label for="camera">Camera Actions:</label><br>
+                        
+                        <!-- Button to check external camera connection -->
+                        <button type="button" onclick="checkExternalCamera()">Check Camera connected</button><br>
+                        
+                        <!-- Message to display if external camera is connected -->
+                        <p id="camera-status"></p><br>
+
+                        <!-- Dropdown for camera selection -->
+                        <label for="camera-select">Select Camera:</label><br>
+                        <select id="camera-select">
+                            <option value="" disabled selected>Select a camera</option>
+                        </select><br><br>
+                        
+                        <!-- Buttons for controlling camera -->
+                        <button type="button" onclick="checkCameraRange()" disabled id="check-range-btn">Check Camera Range</button><br>
+                        <button type="button" onclick="openCamera()" disabled id="open-camera-btn">Open Camera</button><br>
+                        <button type="button" id="capture-btn" onclick="capturePhoto()" disabled>Capture Photo</button><br><br>
+                        
+                        <video id="camera" width="300" height="300" autoplay></video><br>
+                        <canvas id="canvas" width="300" height="300"></canvas><br>
+                        
+                        <input type="hidden" name="image" id="image-data" value="">
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        let videoStream;
+        let isCameraOpen = false;
+        let selectedDeviceId = '';
+        const requiredResolution = { width: 1280, height: 720 }; // Example threshold for resolution
+
+        // Check for external cameras
+        async function checkExternalCamera() {
+            const animationText = document.getElementById('camera-status');
+            animationText.innerText = "Checking for cameras...";
+
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                let externalCameraFound = false;
+
+                // Clear camera selection dropdown
+                const cameraSelect = document.getElementById('camera-select');
+                cameraSelect.innerHTML = '<option value="" disabled selected>Select a camera</option>';
+
+                devices.forEach(device => {
+                    if (device.kind === 'videoinput') {
+                        // Add camera options to the dropdown
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `Camera ${cameraSelect.length + 1}`;
+                        cameraSelect.appendChild(option);
+
+                        // Check if the device is external (not the default internal one)
+                        if (device.deviceId !== 'default' && device.label !== '') {
+                            externalCameraFound = true;
+                        }
+                    }
+                });
+
+                if (externalCameraFound) {
+                    animationText.textContent = "External camera(s) found. Please select one.";
+                    document.getElementById('check-range-btn').disabled = false; // Enable range check button
+                    document.getElementById('open-camera-btn').disabled = true; // Disable open camera button initially
+                } else {
+                    animationText.textContent = "No cameras detected. Please connect one.";
+                    document.getElementById('check-range-btn').disabled = true; // Disable range check button
+                    document.getElementById('open-camera-btn').disabled = true; // Disable open camera button
+                }
+            } catch (error) {
+                console.error("Error accessing devices: ", error);
+                alert("Could not access the device list. Please check your permissions.");
+            }
+        }
+
+        // Check the range (resolution) of the selected camera
+        function checkCameraRange() {
+            if (!selectedDeviceId) {
+                alert("Please select a camera first.");
+                return;
+            }
+
+            const video = document.createElement('video');
+            const constraints = {
+                video: { deviceId: selectedDeviceId }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        const { videoWidth, videoHeight } = video;
+                        console.log(`Camera Resolution: ${videoWidth}x${videoHeight}`);
+
+                        if (videoWidth >= requiredResolution.width && videoHeight >= requiredResolution.height) {
+                            alert("Camera meets the required resolution.");
+                            document.getElementById('open-camera-btn').disabled = false; // Enable open camera button
+                        } else {
+                            alert("Camera resolution is too low. Please select a higher resolution camera.");
+                            document.getElementById('open-camera-btn').disabled = true; // Disable open camera button
+                        }
+
+                        // Stop the stream after checking resolution
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                })
+                .catch(error => {
+                    console.error("Error accessing camera: ", error);
+                    alert("Could not access the camera. Please try again.");
+                });
+        }
+
+        // Open the camera for live video feed
+        function openCamera() {
+            if (selectedDeviceId === '') {
+                alert("Please select a camera first.");
+                return;
+            }
+
+            const video = document.getElementById('camera');
+            video.style.display = 'block';
+
+            navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDeviceId } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    videoStream = stream;
+                    isCameraOpen = true;
+                    document.getElementById('capture-btn').disabled = false; // Enable capture button
+                })
+                .catch(error => {
+                    console.error("Error accessing camera: ", error);
+                    alert("Could not access the camera. Please try again or check permissions.");
+                });
+        }
+
+        // Capture photo from the camera
+        function capturePhoto() {
+            if (!isCameraOpen) {
+                alert("Please open the camera first.");
+                return;
+            }
+
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const file = new File([blob], "captured_photo.png", { type: "image/png" });
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('file-input').files = dataTransfer.files;
+
+                document.getElementById('file-name').textContent = file.name;
+
+                // Stop the camera stream after capturing the photo
+                videoStream.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+            });
+        }
+
+        // Listen for changes in the camera selection dropdown
+        document.getElementById('camera-select').addEventListener('change', function() {
+            selectedDeviceId = this.value;
+        });
+
+        // Update the file name label when a file is selected manually
+        document.getElementById('file-input').addEventListener('change', function() {
+            const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
+            document.getElementById('file-name').textContent = fileName;
+        });
+    </script>
+
+
+    <!-- Three.js Cosmic Background Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        renderer.setClearColor(0x000000); // Set the background color to black
+
+        // Create a star field
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 5000;
+        const positions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 2000; // X position
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 2000; // Y position
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 2000; // Z position
+        }
+
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        camera.position.z = 10;
+
+        // Animate the scene
+        function animate() {
+            requestAnimationFrame(animate);
+
+            stars.rotation.x += 0.0005;
+            stars.rotation.y += 0.0005;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

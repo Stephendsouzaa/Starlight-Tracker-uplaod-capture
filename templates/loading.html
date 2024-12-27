@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detecting Constellation...</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            color: rgb(255, 255, 255);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 20px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffcc; }
+            to { text-shadow: 0 0 20px #00ffcc; }
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 90%;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 15px;
+            border: 5px solid #00ffcc;
+            background: rgb(0, 0, 0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            overflow: auto;
+        }
+
+        .left, .right {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .left {
+            border-right: 2px solid #eeff00;
+        }
+
+        .left img {
+            max-width: 80%;
+            border: 3px solid white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .right canvas {
+            display: block;
+            width: 100%;
+            height: 277px;
+            border-radius: 10px;
+            border: 5px solid #00ffcc;
+        }
+
+        .loader {
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .controls {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .controls label, .controls button {
+            margin: 10px;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #00ffcc;
+            color: black;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: #009999;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #00ffcc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detecting Constellations</h1>
+    <div class="container">
+        <div class="left">
+            <h2>Uploaded Image</h2>
+            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Uploaded Image">
+        </div>
+        <div class="right">
+            <h2>Star Pattern Dectection</h2>
+            <canvas id="patternCanvas"></canvas>
+            <div class="loader" id="loader">Model is preparing to detect constellations...</div>
+            <div class="controls">
+                <label>
+                    Speed Up:
+                    <input type="range" id="speedControl" min="0.01" max="0.1" step="0.01" value="0.02">
+                </label>
+                <button id="toggleStars">Toggle Stars</button>
+                <button id="restartAnimation">Restart Dectection</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>@<a href="https://github.com/yourprofile" target="_blank">Stephen D Souza</a> </p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('patternCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        const stars = {{ stars | safe }};
+        const scaledStars = stars.map(star => ({
+            x: canvas.width * (star.x + 1) / 2,
+            y: canvas.height * (1 - star.y) / 2
+        }));
+
+        let currentLine = 0;
+        let animationProgress = 0;
+        let animationSpeed = 0.02;
+        let showStars = true;
+
+        function drawStars() {
+            if (!showStars) return;
+            scaledStars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+            });
+        }
+
+        function drawConnectingLine() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStars();
+
+            if (currentLine < scaledStars.length - 1) {
+                const start = scaledStars[currentLine];
+                const end = scaledStars[currentLine + 1];
+
+                const x = start.x + (end.x - start.x) * animationProgress;
+                const y = start.y + (end.y - start.y) * animationProgress;
+
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                animationProgress += animationSpeed;
+
+                if (animationProgress >= 1) {
+                    animationProgress = 0;
+                    currentLine++;
+                }
+
+                requestAnimationFrame(drawConnectingLine);
+            } else {
+                document.getElementById('loader').textContent = "Redirecting to results...";
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('result', image=image) }}";
+                }, 3000);
+            }
+        }
+
+        drawConnectingLine();
+
+        document.getElementById('speedControl').addEventListener('input', (e) => {
+            animationSpeed = parseFloat(e.target.value);
+        });
+
+        document.getElementById('toggleStars').addEventListener('click', () => {
+            showStars = !showStars;
+        });
+
+        document.getElementById('restartAnimation').addEventListener('click', () => {
+            currentLine = 0;
+            animationProgress = 0;
+            drawConnectingLine();
+        });
+    </script>
+</body>
+</html>

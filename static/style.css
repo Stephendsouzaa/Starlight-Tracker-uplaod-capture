@@ -1,0 +1,220 @@
+body {
+    margin: 0;
+    overflow-y: auto; /* Allow vertical scrolling */
+    font-family: 'Arial', sans-serif;
+    color: white;
+    text-align: center;
+    background-color: black; /* Set background to black */
+}
+
+h1 {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    font-size: 48px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin-top: 50px;
+}
+/* Style for the paragraph */
+.content p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #ffffff;
+    margin-bottom: 20px;
+    margin-top: 70px;  /* Adjust this value to move the paragraph down */
+    font-family: Arial, sans-serif;
+    text-align: justify;
+    background-color: #000000;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+#upload-form {
+    margin-top: 100px;
+    position: absolute;
+    top: 270px;
+    left: 25%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    width : 577px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgb(255, 255, 255);
+}
+
+input[type="file"],
+button {
+    margin: 10px 100px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color : red;
+    scrollbar-darkshadow-color: red;
+}
+
+button {
+    background-color: #5500ff;
+    color: white;
+    padding: 15px 25px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #3300aa;
+}
+
+video, canvas {
+    display: none; /* Hide the video and canvas initially */
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    flex-wrap: wrap; /* Allow wrapping to prevent overflowing */
+}
+
+.left {
+    flex: 1;
+    padding: 20px;
+    border-right: 2px solid #ddd;
+}
+
+.right {
+    flex: 1;
+    padding: 20px;
+    border-left: 2px solid #ddd;
+}
+
+.right video, .right canvas {
+    display: none;
+    width: 300px;
+    height: 300px;
+}
+
+input[type="file"] {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+#file-name {
+    margin-top: 10px;
+    display: block;
+    color: #ddd;
+}
+
+h2 {
+    text-align: center;
+}
+
+#camera-form {
+    margin-top: 100px;
+    position: absolute;
+    top: 270px;
+    right: 20%; /* Positioned to the right side */
+    transform: translateX(50%); /* Center the form on the right */
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    margin: 100px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgb(255, 255, 255);
+    color: white;
+    text-align: center;
+    width: 577px; /* Set a fixed width for the form */
+}
+
+#camera-form button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #3700ff; /* Green button for better visibility */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#camera-form button:hover {
+    background-color: #0400ff;
+}
+
+#camera-form input[type="file"] {
+    margin-top: 10px;
+    padding: 5px;
+}
+
+#camera-form #file-name {
+    margin-top: 10px;
+    display: block;
+    color: lightgray;
+    font-size: 14px;
+}
+
+/* Scroll bar styling */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Go Back Button */
+.go-back {
+    display: block;
+    text-align: center;
+    margin: 10px 10px; /* Adjusted margins */
+    font-size: 1.2em; /* Font size for button */
+    color: #61dafb;
+    text-decoration: none;
+    padding: 5px 15px; /* Padding for clickable area */
+    border: 2px solid #eeff00;
+    border-radius: 5px;
+    transition: background 0.3s ease, color 0.3s ease;
+    max-width: 150px; /* Adjusted max width for button */
+    position: absolute; /* Absolute positioning */
+    left: 10px; /* Distance from the left side */
+    top: 10px; /* Distance from the top */
+}
+
+.go-back:hover {
+    background: #fbff00;
+    color: black;
+}
+.radar-animation {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 128, 255, 0.5);
+    border-top: 5px solid rgba(0, 128, 255, 1);
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+    margin: 10px auto;
+    display: none;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#camera-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #007BFF;
+    text-align: center;
+    margin-top: 10px;
+}
