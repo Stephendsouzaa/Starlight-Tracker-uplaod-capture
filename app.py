@@ -3,24 +3,12 @@ import os
 import numpy as np
 import cv2
 import tensorflow as tf
-import gdown
 import json
 
 app = Flask(__name__)
 
-# Google Drive model link
-file_id = "1iUE1k3Qvgl3zCMJQJzcNddYQYkvB1tdy"  # Extracted from the shared link
-download_url = f"https://drive.google.com/uc?id={file_id}"
-model_path = "constellation_model.keras"
-
-# Check if the model is already downloaded, if not, download it
-if not os.path.exists(model_path):
-    print("Downloading model from Google Drive...")
-    gdown.download(download_url, model_path, quiet=False)
-    print("Model download complete.")
-
 # Load the pre-trained model
-model = tf.keras.models.load_model(model_path)
+model = tf.keras.models.load_model('constellation_model.keras')
 
 # Map predicted class index to constellation names with detailed information
 constellation_details = {
@@ -193,6 +181,7 @@ constellation_details = {
         "view_more": "https://www.google.com/search?q=Draco+constellation"
     }
 }
+
 
 # Function to extract star-like points (same as before)
 def extract_star_coordinates(img_path):
