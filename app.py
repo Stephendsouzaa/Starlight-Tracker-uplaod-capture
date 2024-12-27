@@ -8,7 +8,7 @@ import json
 app = Flask(__name__)
 
 # Load the pre-trained model
-model = tf.keras.models.load_model('constellation_model.keras')
+model = tf.keras.models.load_model('constellation_model.tflite')
 
 # Map predicted class index to constellation names with detailed information
 constellation_details = {
