@@ -255,5 +255,13 @@ def result(image):
                            significance=constellation_info.get("significance", "Significance data not available"),
                            view_more=constellation_info.get("view_more", "#"))
 
+# Run the Flask app
 if __name__ == '__main__':
-    app.run(debug=True, port=7000)
+    # Ensure the uploads directory exists
+    os.makedirs('static/uploads', exist_ok=True)
+    
+    # Get the port from the environment variable or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    
+    # Run the app on the correct port and make it accessible externally
+    app.run(debug=True, host='0.0.0.0', port=port)
