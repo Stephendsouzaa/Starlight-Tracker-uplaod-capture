@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # Download and load model
 repo_id = "stephendsouza/Starlight-Tracker"
-model_filename = "constellation_model_mobilenet.keras"
+model_filename = "constellation_model.keras"
 model_path = hf_hub_download(repo_id=repo_id, filename=model_filename)
 model = tf.keras.models.load_model(model_path)
 # Map predicted class index to constellation names with detailed information
@@ -202,14 +202,14 @@ def extract_star_coordinates(img_path):
     normalized_points = [{"x": (x / 150) - 1, "y": 1 - (y / 150), "z": 0} for x, y in points]
     return normalized_points[:20]
 
-# Function to predict constellation (same as before)
+# Function to predict constellation
 def predict_constellation(img_path):
     img = cv2.imread(img_path)
-    img = cv2.resize(img, (224, 224))
-    img = img / 255.0
-    img = np.expand_dims(img, axis=0)
+    img = cv2.resize(img, (224, 224))  # Resize image to 224x224 as required by the model
+    img = img / 255.0  # Normalize the image
+    img = np.expand_dims(img, axis=0)  # Add batch dimension
     prediction = model.predict(img)
-    predicted_class = np.argmax(prediction, axis=1)[0]
+    predicted_class = np.argmax(prediction, axis=1)[0]  # Get predicted class index
     return list(constellation_details.keys())[predicted_class]
 
 # Home page
@@ -235,6 +235,7 @@ def upload_image():
         img.save(img_path)
         return redirect(url_for('loading', image=img.filename))
     return redirect(url_for('home'))
+
 # Result page
 @app.route('/result/<image>')
 def result(image):
@@ -256,7 +257,8 @@ def result(image):
                            facts=constellation_info.get("facts", "No facts available"),
                            best_visibility=constellation_info.get("best_visibility", "Visibility data not available"),
                            significance=constellation_info.get("significance", "Significance data not available"),
-                           view_more=constellation_info.get("view_more", "#"))\
+                           view_more=constellation_info.get("view_more", "#"))
+
 # Run the Flask app
 # Run the Flask app
 if __name__ == '__main__':
