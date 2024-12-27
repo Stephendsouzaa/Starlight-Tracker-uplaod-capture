@@ -7,9 +7,11 @@ import json
 
 app = Flask(__name__)
 
-# Load the pre-trained model
-model = tf.keras.models.load_model('constellation_model.tflite')
-
+# Load the TensorFlow Lite model
+repo_id = "stephendsouza/Starlight-Tracker"
+model_filename = "constellation_model.keras"
+model_path = hf_hub_download(repo_id=repo_id, filename=model_filename)
+model = tf.keras.models.load_model(model_path)
 # Map predicted class index to constellation names with detailed information
 constellation_details = {
     "Andromeda": {
@@ -181,9 +183,8 @@ constellation_details = {
         "view_more": "https://www.google.com/search?q=Draco+constellation"
     }
 }
-
-
-# Function to extract star-like points (same as before)
+# Function to extract star-like points
+# Function to extract star-like points
 def extract_star_coordinates(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     img = cv2.resize(img, (300, 300))
@@ -199,14 +200,25 @@ def extract_star_coordinates(img_path):
     normalized_points = [{"x": (x / 150) - 1, "y": 1 - (y / 150), "z": 0} for x, y in points]
     return normalized_points[:20]
 
-# Function to predict constellation (same as before)
+# Function to predict constellation
 def predict_constellation(img_path):
     img = cv2.imread(img_path)
     img = cv2.resize(img, (224, 224))
     img = img / 255.0
     img = np.expand_dims(img, axis=0)
-    prediction = model.predict(img)
-    predicted_class = np.argmax(prediction, axis=1)[0]
+
+    # TensorFlow Lite inference
+    input_details = model.get_input_details()
+    output_details = model.get_output_details()
+    
+    model.set_tensor(input_details[0]['index'], img)
+    model.invoke()
+
+    # Get the result from the output tensor
+    output_data = model.get_tensor(output_details[0]['index'])
+    predicted_class = np.argmax(output_data, axis=1)[0]
+    
+    # Return the predicted constellation
     return list(constellation_details.keys())[predicted_class]
 
 # Home page
@@ -232,29 +244,36 @@ def upload_image():
         img.save(img_path)
         return redirect(url_for('loading', image=img.filename))
     return redirect(url_for('home'))
+
 # Result page
 @app.route('/result/<image>')
 def result(image):
-    # Construct the image path based on the uploaded image
-    img_path = os.path.join('static', 'uploads', image)
-    
-    # Predict the constellation based on the image
-    predicted_constellation = predict_constellation(img_path)
-    
-    # Get the information for the predicted constellation
-    constellation_info = constellation_details.get(predicted_constellation, {})
-    
-    # Pass the necessary information to the template
-    return render_template('result.html', 
-                           constellation=predicted_constellation, 
-                           image=image, 
-                           description=constellation_info.get("description", "No description available"), 
-                           mythology=constellation_info.get("mythology", "No mythology available"),
-                           facts=constellation_info.get("facts", "No facts available"),
-                           best_visibility=constellation_info.get("best_visibility", "Visibility data not available"),
-                           significance=constellation_info.get("significance", "Significance data not available"),
-                           view_more=constellation_info.get("view_more", "#"))
+    try:
+        # Construct the image path based on the uploaded image
+        img_path = os.path.join('static', 'uploads', image)
+        
+        # Predict the constellation based on the image
+        predicted_constellation = predict_constellation(img_path)
+        
+        # Get the information for the predicted constellation
+        constellation_info = constellation_details.get(predicted_constellation, {})
+        
+        # Pass the necessary information to the template
+        return render_template('result.html', 
+                               constellation=predicted_constellation, 
+                               image=image, 
+                               description=constellation_info.get("description", "No description available"), 
+                               mythology=constellation_info.get("mythology", "No mythology available"),
+                               facts=constellation_info.get("facts", "No facts available"),
+                               best_visibility=constellation_info.get("best_visibility", "Visibility data not available"),
+                               significance=constellation_info.get("significance", "Significance data not available"),
+                               view_more=constellation_info.get("view_more", "#"))
+    except Exception as e:
+        # Handle any errors gracefully
+        return jsonify({'error': f"Error occurred while processing the image: {str(e)}"}), 500
 
+
+# Run the Flask app
 # Run the Flask app
 if __name__ == '__main__':
     # Ensure the uploads directory exists
