@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify
+from huggingface_hub import hf_hub_download
 import os
 import numpy as np
 import cv2
