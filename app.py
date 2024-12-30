@@ -202,34 +202,15 @@ def extract_star_coordinates(img_path):
     normalized_points = [{"x": (x / 150) - 1, "y": 1 - (y / 150), "z": 0} for x, y in points]
     return normalized_points[:20]
 
-# Function to predict constellation
+# Function to predict constellation (same as before)
 def predict_constellation(img_path):
-    try:
-        # Load the image
-        img = cv2.imread(img_path)
-        
-        # Resize image to the expected shape (224x224 or 160x160 based on model)
-        img = cv2.resize(img, (224, 224))  # Update to (160, 160) if your model expects it
-        
-        # Normalize the image
-        img = img / 255.0
-        
-        # Add batch dimension
-        img = np.expand_dims(img, axis=0)
-        
-        # Predict the class
-        prediction = model.predict(img)
-        
-        # Get the class index with the highest probability
-        predicted_class = np.argmax(prediction, axis=1)[0]
-        
-        # Return the predicted constellation name
-        return list(constellation_details.keys())[predicted_class]
-    
-    except Exception as e:
-        print(f"Error in prediction: {e}")
-        return None  # Return None in case of an error
-
+    img = cv2.imread(img_path)
+    img = cv2.resize(img, (224, 224))
+    img = img / 255.0
+    img = np.expand_dims(img, axis=0)
+    prediction = model.predict(img)
+    predicted_class = np.argmax(prediction, axis=1)[0]
+    return list(constellation_details.keys())[predicted_class]
 
 # Home page
 @app.route('/')
@@ -254,7 +235,6 @@ def upload_image():
         img.save(img_path)
         return redirect(url_for('loading', image=img.filename))
     return redirect(url_for('home'))
-
 # Result page
 @app.route('/result/<image>')
 def result(image):
@@ -263,10 +243,6 @@ def result(image):
     
     # Predict the constellation based on the image
     predicted_constellation = predict_constellation(img_path)
-    
-    # If prediction failed, redirect back to home page with an error message
-    if not predicted_constellation:
-        return redirect(url_for('home'))  # You can show an error message here if needed
     
     # Get the information for the predicted constellation
     constellation_info = constellation_details.get(predicted_constellation, {})
