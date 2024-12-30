@@ -218,3 +218,53 @@ h2 {
     text-align: center;
     margin-top: 10px;
 }
+@media (max-width: 768px) {
+    .content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .left, .right {
+        flex: 1 1 100%;
+        padding: 10px;
+        border: none; /* Remove borders for smaller screens */
+    }
+
+    #upload-form, #camera-form {
+        position: static; /* Make forms flow naturally */
+        transform: none;
+        width: 90%; /* Adjust to fit smaller screens */
+        margin: 20px auto; /* Center forms */
+    }
+
+    button, input[type="file"] {
+        width: 100%; /* Full-width buttons and inputs */
+        margin: 10px 0; /* Adjust margin for smaller screens */
+    }
+
+    video, canvas {
+        max-width: 100%; /* Scale video and canvas to fit */
+        height: auto;
+        display: block; /* Ensure they're visible */
+        margin: 10px auto;
+    }
+
+    h1 {
+        font-size: 32px; /* Adjust heading size */
+    }
+
+    .go-back {
+        margin: 10px auto;
+        display: block;
+        text-align: center;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    .go-back:hover {
+        background-color: #0056b3;
+    }
+}
