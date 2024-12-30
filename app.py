@@ -204,13 +204,32 @@ def extract_star_coordinates(img_path):
 
 # Function to predict constellation
 def predict_constellation(img_path):
-    img = cv2.imread(img_path)
-    img = cv2.resize(img, (224, 224))  # Resize image to 224x224 as required by the model
-    img = img / 255.0  # Normalize the image
-    img = np.expand_dims(img, axis=0)  # Add batch dimension
-    prediction = model.predict(img)
-    predicted_class = np.argmax(prediction, axis=1)[0]  # Get predicted class index
-    return list(constellation_details.keys())[predicted_class]
+    try:
+        # Load the image
+        img = cv2.imread(img_path)
+        
+        # Resize image to the expected shape (224x224 or 160x160 based on model)
+        img = cv2.resize(img, (224, 224))  # Update to (160, 160) if your model expects it
+        
+        # Normalize the image
+        img = img / 255.0
+        
+        # Add batch dimension
+        img = np.expand_dims(img, axis=0)
+        
+        # Predict the class
+        prediction = model.predict(img)
+        
+        # Get the class index with the highest probability
+        predicted_class = np.argmax(prediction, axis=1)[0]
+        
+        # Return the predicted constellation name
+        return list(constellation_details.keys())[predicted_class]
+    
+    except Exception as e:
+        print(f"Error in prediction: {e}")
+        return None  # Return None in case of an error
+
 
 # Home page
 @app.route('/')
