@@ -264,6 +264,10 @@ def result(image):
     # Predict the constellation based on the image
     predicted_constellation = predict_constellation(img_path)
     
+    # If prediction failed, redirect back to home page with an error message
+    if not predicted_constellation:
+        return redirect(url_for('home'))  # You can show an error message here if needed
+    
     # Get the information for the predicted constellation
     constellation_info = constellation_details.get(predicted_constellation, {})
     
@@ -277,6 +281,7 @@ def result(image):
                            best_visibility=constellation_info.get("best_visibility", "Visibility data not available"),
                            significance=constellation_info.get("significance", "Significance data not available"),
                            view_more=constellation_info.get("view_more", "#"))
+
 
 # Run the Flask app
 # Run the Flask app
