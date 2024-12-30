@@ -203,14 +203,16 @@ def extract_star_coordinates(img_path):
     return normalized_points[:20]
 
 # Function to predict constellation (same as before)
+# Function to predict constellation
 def predict_constellation(img_path):
     img = cv2.imread(img_path)
-    img = cv2.resize(img, (224, 224))
-    img = img / 255.0
-    img = np.expand_dims(img, axis=0)
-    prediction = model.predict(img)
-    predicted_class = np.argmax(prediction, axis=1)[0]
+    img = cv2.resize(img, (160, 160))  # Resize to 160x160, which matches the expected input shape
+    img = img / 255.0  # Normalize the image
+    img = np.expand_dims(img, axis=0)  # Add batch dimension
+    prediction = model.predict(img)  # Predict the class
+    predicted_class = np.argmax(prediction, axis=1)[0]  # Get the predicted class
     return list(constellation_details.keys())[predicted_class]
+
 
 # Home page
 @app.route('/')
